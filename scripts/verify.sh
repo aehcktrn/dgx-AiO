@@ -19,7 +19,6 @@ log="$ROOT/state/verify-$stamp.log"
 tsv="$ROOT/state/verify-$stamp.tsv"
 json="$ROOT/state/verify-$stamp.json"
 : > "$tsv"
-
 pass=0
 fail=0
 
@@ -48,6 +47,7 @@ run_check() {
 run_check "preflight" bash "$ROOT/scripts/00-preflight.sh"
 run_check "doctor-core" bash "$ROOT/scripts/doctor.sh"
 run_check "network-loopback" bash "$ROOT/scripts/test-network-bindings.sh"
+run_check "runtime-security" bash "$ROOT/scripts/test-security-runtime.sh"
 run_check "model-inventory" python3 "$ROOT/scripts/test-model-inventory.py"
 run_check "openwebui-runtime" bash "$ROOT/scripts/test-openwebui-runtime.sh"
 
@@ -55,6 +55,7 @@ if [[ "$mode" != quick ]]; then
   for model in cyber-reference cyber-libre discussion-libre internet-reference; do
     run_check "llm-$model" python3 "$ROOT/scripts/test-llm-health.py" --model "$model"
   done
+  run_check "ollama-gpu-residency" python3 "$ROOT/scripts/test-ollama-gpu.py"
   run_check "native-tool-calling-internet" python3 "$ROOT/scripts/test-tools.py" --model internet-reference
   run_check "web-egress" bash "$ROOT/scripts/test-web-egress.sh"
   run_check "image-generation" python3 "$ROOT/scripts/test-image.py"
@@ -64,6 +65,7 @@ if [[ "$mode" == full ]]; then
   run_check "restart-persistence" bash "$ROOT/scripts/test-restart.sh"
   run_check "post-restart-doctor" bash "$ROOT/scripts/doctor.sh"
   run_check "post-restart-inference" python3 "$ROOT/scripts/test-llm-health.py" --model cyber-reference
+  run_check "post-restart-gpu" python3 "$ROOT/scripts/test-ollama-gpu.py"
   run_check "backup-integrity" bash "$ROOT/scripts/test-backup.sh"
 fi
 
@@ -72,26 +74,17 @@ import csv
 import json
 import sys
 from pathlib import Path
-
 src, dst, mode, stamp = sys.argv[1:]
-checks = []
+checks=[]
 with open(src, newline="", encoding="utf-8") as handle:
-    for name, status, seconds in csv.reader(handle, delimiter="\t"):
-        checks.append({"name": name, "status": status, "seconds": int(seconds)})
-payload = {
-    "timestamp_utc": stamp,
-    "mode": mode,
-    "passed": sum(c["status"] == "PASS" for c in checks),
-    "failed": sum(c["status"] == "FAIL" for c in checks),
-    "checks": checks,
-}
-Path(dst).write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    for name,status,seconds in csv.reader(handle, delimiter="\t"):
+        checks.append({"name":name,"status":status,"seconds":int(seconds)})
+payload={"timestamp_utc":stamp,"mode":mode,"passed":sum(c["status"]=="PASS" for c in checks),"failed":sum(c["status"]=="FAIL" for c in checks),"checks":checks}
+Path(dst).write_text(json.dumps(payload, indent=2)+"\n", encoding="utf-8")
 PY
-
 echo
 echo "===== VERIFICATION SUMMARY =====" | tee -a "$log"
 echo "mode=$mode pass=$pass fail=$fail" | tee -a "$log"
 echo "report=$json" | tee -a "$log"
 echo "log=$log" | tee -a "$log"
-
 (( fail == 0 ))
