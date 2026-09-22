@@ -11,4 +11,8 @@ Initial reproducible bootstrap captured from the first DGX Spark qualification:
 - ComfyUI + Z-Image-Turbo workflow;
 - ARM64/Triton compatibility checks;
 - image generation mapping and Legacy-mode workaround documented;
-- diagnostics, smoke tests and backup helper.
+- automated quick / standard / full acceptance suites;
+- model inventory, loopback exposure, Open WebUI runtime, inference, native tool-calling, web egress and image-output tests;
+- restart recovery and backup-integrity tests;
+- machine-readable verification reports under `state/`;
+- diagnostics and backup helper.
