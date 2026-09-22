@@ -83,4 +83,12 @@ See [`SECURITY.md`](SECURITY.md).
 
 ## License
 
-No software license has been selected yet. Until a license is added, normal copyright rules apply to this repository.
+🍺 **Beerware.**
+
+Do whatever you want with it. Keep the Beerware notice somewhere in the source if you redistribute it.
+
+If dgx-AiO saved you from spending your weekend debugging ARM64, CUDA, Triton and ComfyUI on a DGX Spark, buy me a beer if we ever meet.
+
+No warranty. If it sets your Spark on fire, that's between you and NVIDIA.
+
+See [`LICENSE`](LICENSE).
