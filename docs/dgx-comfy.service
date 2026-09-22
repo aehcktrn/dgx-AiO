@@ -1,0 +1,26 @@
+[Unit]
+Description=ComfyUI local sur DGX Spark
+After=network.target
+
+[Service]
+Type=simple
+User=dgx-comfy
+Group=dgx-comfy
+WorkingDirectory=/srv/dgx-ai/comfy/ComfyUI
+Environment=HOME=/srv/dgx-ai/comfy
+Environment=HF_HUB_OFFLINE=1
+Environment=HF_HUB_DISABLE_TELEMETRY=1
+Environment=PYTHONUNBUFFERED=1
+ExecStart=/srv/dgx-ai/comfy/venv/bin/python main.py --listen 127.0.0.1 --port 8188 --disable-api-nodes --disable-all-custom-nodes
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=90
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=full
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+[Install]
+WantedBy=multi-user.target
