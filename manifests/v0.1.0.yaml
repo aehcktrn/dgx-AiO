@@ -1,0 +1,24 @@
+release: 0.1.0
+target:
+  platform: NVIDIA DGX Spark
+  architecture: arm64
+containers:
+  ollama: ollama/ollama:0.34.2
+  open_webui: ghcr.io/open-webui/open-webui:v0.11.4
+comfyui:
+  tag: v0.33.2
+  pytorch_index: https://download.pytorch.org/whl/cu130
+models:
+  cyber_reference: qwen3-coder:30b-a3b-q4_K_M
+  cyber_abliterated: huihui_ai/qwen3-coder-abliterated:30b-a3b-instruct-q4_K_M
+  discussion_abliterated: huihui_ai/qwen3-abliterated:30b-a3b-instruct-2507-q4_K_M
+  internet_reference: qwen3:30b-a3b-instruct-2507-q4_K_M
+  embeddings: bge-m3:latest
+image:
+  repository: Comfy-Org/z_image_turbo
+  workflow: workflows/z-image-turbo.api.json
+notes:
+  - Container tags are resolved to immutable digests during install and recorded under state/.
+  - Model tags are inventoried after pull; v0.1 does not yet pin Ollama blobs in the release manifest.
+  - Open WebUI image preset uses Legacy function calling for the abliterated discussion model.
+  - Internet preset uses Native function calling with the original Qwen3 Instruct model.

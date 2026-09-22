@@ -1,0 +1,93 @@
+name: dgx-ai
+services:
+  ollama:
+    image: ${OLLAMA_IMAGE:?Run scripts/01-prepare.sh first}
+    platform: linux/arm64
+    network_mode: host
+    restart: unless-stopped
+    environment:
+      OLLAMA_HOST: 127.0.0.1:11434
+      OLLAMA_NO_CLOUD: "1"
+      OLLAMA_CONTEXT_LENGTH: "16384"
+      OLLAMA_NUM_PARALLEL: "1"
+      OLLAMA_MAX_LOADED_MODELS: ${OLLAMA_MAX_LOADED_MODELS:-1}
+      OLLAMA_KEEP_ALIVE: "2m"
+    volumes:
+      - ./data/ollama:/root/.ollama
+      - ./modelfiles:/modelfiles:ro
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  open-webui:
+    image: ${WEBUI_IMAGE:?Run scripts/01-prepare.sh first}
+    platform: linux/arm64
+    network_mode: host
+    restart: unless-stopped
+    depends_on:
+      ollama:
+        condition: service_healthy
+    environment:
+      HOST: 127.0.0.1
+      PORT: "8080"
+      FORWARDED_ALLOW_IPS: 127.0.0.1
+      WEBUI_URL: http://localhost:8080
+      WEBUI_AUTH: "true"
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:?Missing WEBUI secret}
+      WEBUI_ADMIN_EMAIL: ${WEBUI_ADMIN_EMAIL:-}
+      WEBUI_ADMIN_PASSWORD: ${WEBUI_ADMIN_PASSWORD:-}
+      WEBUI_ADMIN_NAME: Admin Spark
+      ENABLE_SIGNUP: "false"
+      ENABLE_PERSISTENT_CONFIG: "true"
+      OLLAMA_BASE_URL: http://127.0.0.1:11434
+      ENABLE_OLLAMA_API: "true"
+      ENABLE_OPENAI_API: "false"
+      ENABLE_DIRECT_CONNECTIONS: "false"
+      ENABLE_DIRECT_INTEGRATIONS: "false"
+      ENABLE_CODE_EXECUTION: "false"
+      ENABLE_CODE_INTERPRETER: "false"
+      TOOL_SERVER_CONNECTIONS: "[]"
+      OFFLINE_MODE: "true"
+      HF_HUB_OFFLINE: "1"
+      RAG_EMBEDDING_ENGINE: ollama
+      RAG_EMBEDDING_MODEL: bge-m3:latest
+      RAG_OLLAMA_BASE_URL: http://127.0.0.1:11434
+      RAG_EMBEDDING_MODEL_AUTO_UPDATE: "false"
+      RAG_RERANKING_MODEL_AUTO_UPDATE: "false"
+      WHISPER_MODEL_AUTO_UPDATE: "false"
+      ENABLE_IMAGE_GENERATION: "true"
+      COMFYUI_BASE_URL: http://127.0.0.1:8188
+      ENABLE_WEB_SEARCH: "true"
+      USER_AGENT: "Mozilla/5.0 (X11; Linux aarch64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36"
+    volumes:
+      - ./data/openwebui:/app/backend/data
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=8)"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 180s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

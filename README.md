@@ -7,7 +7,7 @@
 - local chat with Ollama + Open WebUI;
 - a cyber / red-team oriented reference model;
 - an abliterated cyber profile for fewer refusals during legitimate lab work;
-- a general-purpose abiterated discussion profile;
+- a general-purpose abliterated discussion profile;
 - a Qwen3 Internet profile with native tool calling for web search;
 - local image generation with ComfyUI + Z-Image-Turbo;
 - diagnostics, smoke tests and backup helpers.

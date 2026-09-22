@@ -1,0 +1,10 @@
+.env
+.bootstrap-password
+state/
+data/
+comfy/
+backups/
+*.tar.gz
+__pycache__/
+*.pyc
+.DS_Store
